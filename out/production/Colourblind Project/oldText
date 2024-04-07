@@ -1,0 +1,1099 @@
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
+
+List<Difference> list = new ArrayList<Difference>();
+
+public class old {
+    protanopiaB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                changePixelsDetailed(protanopia);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+        protoanomalyB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                changePixelsDetailed(protanomaly);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+        deutranopiaB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                changePixelsDetailed(deuteranopia);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+        normalB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                changePixelsDetailed(normal);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+
+    //----------------------------Eyedropper-----------------------------------------------------------------------
+
+        slider2.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintLeftComponent();
+        }
+    });
+        slider4.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintLeftComponent();
+        }
+    });
+        slider6.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintLeftComponent();
+        }
+    });
+        filterS.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintRightComponent();
+        }
+    });
+        slider3.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintRightComponent();
+        }
+    });
+        slider5.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            paintRightComponent();
+        }
+    });
+
+
+    //------------------------------------Compare----------------------------------
+        uploadB2.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser file_upload = new JFileChooser();
+            //file_upload.showOpenDialog(null);
+            int res = file_upload.showOpenDialog(null);
+            int res_2 = file_upload.showSaveDialog(null);
+            if (res_2 == JFileChooser.APPROVE_OPTION){
+                File file_path = new File(file_upload.getSelectedFile().getAbsolutePath());
+                System.out.println(file_path);
+                BufferedImage img = null;
+                try {
+                    img = ImageIO.read(file_path);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                ImageIcon newIMGIcon = new ImageIcon(img);
+                Image image = newIMGIcon.getImage();
+                Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+                newIMGIcon = new ImageIcon(newimg);
+                imageLabel.setIcon(newIMGIcon);
+                compareImageL.setIcon(newIMGIcon);
+                compareImageR.setIcon(newIMGIcon);
+                currentImage = file_path;
+            }
+        }
+    });
+
+        intensityS.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            try {
+                applyBlindness();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+
+        blindnessC.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                applyBlindness();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            };
+        }
+    });
+
+        overlay.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (overlay.isSelected() == true){
+                compareImageL.setBounds(172,41,300,300);
+                compareImageR.setBounds(172,41,300,300);
+            } else {
+                compareImageL.setBounds(0,41,300,300);
+                compareImageR.setBounds(345,41,300,300);
+            }
+        }
+    });
+
+        opacityS.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent event) {
+            try {
+                changeOpacity();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+
+    //---------------------------Mix---------------------------------------------------------
+
+        mixEnterB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String colour1 = mixCol1Text.getText();
+            String colour2 = mixCol2Text.getText();
+
+
+            if(isColour(colour1) && isColour(colour2)){
+                int difference = (findContrast(colour1,colour2)).intValue();
+                list.clear();
+                fillContrastList(colour1,difference);
+                colourDisplay(colour1,mixCol1);
+                colourDisplay(colour2,mixCol2);
+                mixPercent.setText(Integer.toString(difference)+"%");
+            }
+        }
+    });
+
+        mixRandomiseB.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            randomiseColour();
+        }
+    });
+
+    //-------------------------Eyedropper----------------------------------------------------------------------------
+
+    public void paintLeftComponent(){
+        int red = (int)(slider2.getValue()*0.01*255);
+        String numText = Integer.toString(red);
+        text2.setText(numText);
+        int green = (int)(slider4.getValue()*0.01*255);
+        numText = Integer.toString(green);
+        text4.setText(numText);
+        int blue = (int)(slider6.getValue()*0.01*255);
+        numText = Integer.toString(blue);
+        text6.setText(numText);
+
+        Color newColor = new Color(red, green, blue);
+        int intColour = newColor.getRGB();
+
+        BufferedImage img = new BufferedImage(300,400, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < img.getWidth(); i++) {
+            for (int j = 0; j < img.getHeight(); j++) {
+                img.setRGB(i, j, intColour);
+            }
+        }
+        ImageIcon newIMGIcon = new ImageIcon(img);
+        leftCompare.setIcon(newIMGIcon);
+    }
+
+    public void paintRightComponent(){
+        int red = (int)(filterS.getValue()*0.01*255);
+        String numText = Integer.toString(red);
+        text1.setText(numText);
+        int green = (int)(slider3.getValue()*0.01*255);
+        numText = Integer.toString(green);
+        text3.setText(numText);
+        int blue = (int)(slider5.getValue()*0.01*255);
+        numText = Integer.toString(blue);
+        text5.setText(numText);
+
+        Color newColor = new Color(red, green, blue);
+        int intColour = newColor.getRGB();
+
+
+
+        BufferedImage img = new BufferedImage(300,400, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < img.getWidth(); i++) {
+            for (int j = 0; j < img.getHeight(); j++) {
+                img.setRGB(i, j, intColour);
+            }
+        }
+        ImageIcon newIMGIcon = new ImageIcon(img);
+        rightCompare.setIcon(newIMGIcon);
+    }
+
+
+
+
+    //------------------------Compare--------------------------------------------------------------------------------
+
+    Double[] transformMatrix(Double [] colMatrix){
+        Double [] matrix = {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0};
+        Double intensity = (intensityS.getValue()*0.01);
+        for (int i = 0; i < 2; i++){
+            Double diff = colMatrix[i] - matrix[i];
+            matrix[i] = (diff * intensity) + matrix[i];
+        }
+        return matrix;
+    }
+
+    public void applyBlindness() throws IOException {
+        BufferedImage img = ImageIO.read(currentImage);
+        Double [] colMatrix = null;
+        switch((String)blindnessC.getSelectedItem()){
+            case "Protanopia":
+                colMatrix = protanopia;
+                break;
+            case "Protanomaly":
+                colMatrix = protanomaly;
+                break;
+            case "Deuteranopia":
+                colMatrix = deuteranopia;
+                break;
+            default:
+                colMatrix = normal;
+        }
+        Double [] alteredMatrix = transformMatrix(colMatrix);
+
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                //Retrieving contents of a pixel
+                int pixel = img.getRGB(x, y);
+                //Creating a Color object from pixel value
+                Color color = new Color(pixel, true);
+                //Retrieving the R G B values
+                int OGred = color.getRed();
+                int OGgreen = color.getGreen();
+                int OGblue = color.getBlue();
+
+                int red = 0;
+                int green = 0;
+                int blue = 0;
+
+                red = (int)((alteredMatrix[1] * OGred) + (alteredMatrix[1]*OGgreen)+ (alteredMatrix[2]*OGblue));
+                green = (int)((alteredMatrix[3] * OGred) + (alteredMatrix[4]*OGgreen)+ (alteredMatrix[5]*OGblue));
+                blue = (int)((alteredMatrix[6] * OGred) + (alteredMatrix[7]*OGgreen)+ (alteredMatrix[8]*OGblue));
+
+                if (red > 255)
+                    red = 255;
+                if (green > 255)
+                    green = 255;
+                if (blue > 255)
+                    blue = 255;
+                Color newColor = new Color(red, green, blue);
+                int z = newColor.getRGB();
+                img.setRGB(x, y, z);
+            }
+        }
+        ImageIcon newIMGIcon = new ImageIcon(img);
+        Image image = newIMGIcon.getImage();
+        Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+        newIMGIcon = new ImageIcon(newimg);
+        imageLabel.setIcon(newIMGIcon);
+        compareImageR.setIcon(newIMGIcon);
+    }
+
+    public void changeOpacity() throws IOException {
+        BufferedImage img = ImageIO.read(currentImage);
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                //Retrieving contents of a pixel
+                int pixel = img.getRGB(x, y);
+                //Creating a Color object from pixel value
+                Color color = new Color(pixel, true);
+                //Retrieving the R G B values
+                int OGred = color.getRed();
+                int OGgreen = color.getGreen();
+                int OGblue = color.getBlue();
+                float opacity = (float)(0.01*opacityS.getValue());
+                Color newColor = new Color(OGred, OGgreen, OGblue, opacity);
+                int z = newColor.getRGB();
+                img.setRGB(x, y, z);
+            }
+        }
+        ImageIcon newIMGIcon = new ImageIcon(img);
+        Image image = newIMGIcon.getImage();
+        Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+        newIMGIcon = new ImageIcon(newimg);
+        imageLabel.setIcon(newIMGIcon);
+        compareImageR.setIcon(newIMGIcon);
+    }
+
+    public void getPixels()throws Exception {
+//        String writer = null;
+//        //Reading the image
+//        BufferedImage img = ImageIO.read(currentImage);
+//        for (int y = 0; y < img.getHeight(); y++) {
+//            for (int x = 0; x < img.getWidth(); x++) {
+//                //Retrieving contents of a pixel
+//                int pixel = img.getRGB(x,y);
+//                //Creating a Color object from pixel value
+//                Color color = new Color(pixel, true);
+//                //Retrieving the R G B values
+//                int red = color.getRed();
+//                int green = color.getGreen();
+//                int blue = color.getBlue();
+//                writer = writer + red + ":" + green + ":" + blue + "" + "\n";
+//            }
+//        }
+//        System.out.println("RGB values at each pixel are stored in the specified file");
+//        System.out.println(writer);
+//    }
+
+        public void changePixelsDetailed(Double [] colMatrix)throws Exception {
+//        //Reading the image
+//        BufferedImage img = ImageIO.read(currentImage);
+//        for (int y = 0; y < img.getHeight(); y++) {
+//            for (int x = 0; x < img.getWidth(); x++) {
+//                //Retrieving contents of a pixel
+//                int pixel = img.getRGB(x, y);
+//                //Creating a Color object from pixel value
+//                Color color = new Color(pixel, true);
+//                //Retrieving the R G B values
+//                int OGred = color.getRed();
+//                int OGgreen = color.getGreen();
+//                int OGblue = color.getBlue();
+//
+//                int red = 0;
+//                int green = 0;
+//                int blue = 0;
+//
+//                red = (int)((colMatrix[1] * OGred) + (colMatrix[1]*OGgreen)+ (colMatrix[2]*OGblue));
+//                green = (int)((colMatrix[3] * OGred) + (colMatrix[4]*OGgreen)+ (colMatrix[5]*OGblue));
+//                blue = (int)((colMatrix[6] * OGred) + (colMatrix[7]*OGgreen)+ (colMatrix[8]*OGblue));
+//
+//                if (red > 255)
+//                    red = 255;
+//                if (green > 255)
+//                    green = 255;
+//                if (blue > 255)
+//                    blue = 255;
+//                Color newColor = new Color(red, green, blue);
+//                int z = newColor.getRGB();
+//                img.setRGB(x, y, z);
+//            }
+//        }
+//        ImageIcon newIMGIcon = new ImageIcon(img);
+//        imageLabel.setIcon(newIMGIcon);
+//    }
+            public void changePixelsDetailed (Double[]colMatrix)throws Exception {
+                //Reading the image
+                BufferedImage img = ImageIO.read(currentImage);
+                for (int y = 0; y < img.getHeight(); y++) {
+                    for (int x = 0; x < img.getWidth(); x++) {
+                        //Retrieving contents of a pixel
+                        int pixel = img.getRGB(x, y);
+                        //Creating a Color object from pixel value
+                        Color color = new Color(pixel, true);
+                        //Retrieving the R G B values
+                        int OGred = color.getRed();
+                        int OGgreen = color.getGreen();
+                        int OGblue = color.getBlue();
+
+                        int difference = 255 - (Math.max(OGred, (Math.max(OGgreen, OGblue))));
+
+
+                        int red = OGred + difference;
+                        int green = OGgreen + difference;
+                        int blue = OGblue + difference;
+
+
+                        Color newColor = new Color(red, green, blue);
+                        int z = newColor.getRGB();
+                        img.setRGB(x, y, z);
+                    }
+                }
+                ImageIcon newIMGIcon = new ImageIcon(img);
+                imageLabel.setIcon(newIMGIcon);
+            }
+
+            public void drawWheel () {
+                int rad = 1024;
+                BufferedImage img = new BufferedImage(rad, rad, BufferedImage.TYPE_INT_RGB);
+
+                // Center Point (MIDDLE, MIDDLE)
+                int centerX = img.getWidth() / 2;
+                int centerY = img.getHeight() / 2;
+                int radius = (img.getWidth() / 2) * (img.getWidth() / 2);
+
+                // Red Source is (RIGHT, MIDDLE)
+                int redX = img.getWidth();
+                int redY = img.getHeight() / 2;
+                int redRad = img.getWidth() * img.getWidth();
+
+                // Green Source is (LEFT, MIDDLE)
+                int greenX = 0;
+                int greenY = img.getHeight() / 2;
+                int greenRad = img.getWidth() * img.getWidth();
+
+                // Blue Source is (MIDDLE, BOTTOM)
+                int blueX = img.getWidth() / 2;
+                int blueY = img.getHeight();
+                int blueRad = img.getWidth() * img.getWidth();
+
+                for (int i = 0; i < img.getWidth(); i++) {
+                    for (int j = 0; j < img.getHeight(); j++) {
+                        int a = i - centerX;
+                        int b = j - centerY;
+
+                        int distance = a * a + b * b;
+                        if (distance < radius) {
+                            int rdx = i - redX;
+                            int rdy = j - redY;
+                            int redDist = (rdx * rdx + rdy * rdy);
+                            int redVal = (int) (255 - ((redDist / (float) redRad) * 256));
+
+                            int gdx = i - greenX;
+                            int gdy = j - greenY;
+                            int greenDist = (gdx * gdx + gdy * gdy);
+                            int greenVal = (int) (255 - ((greenDist / (float) greenRad) * 256));
+
+                            int bdx = i - blueX;
+                            int bdy = j - blueY;
+                            int blueDist = (bdx * bdx + bdy * bdy);
+                            int blueVal = (int) (255 - ((blueDist / (float) blueRad) * 256));
+
+                            Color c = new Color(redVal, greenVal, blueVal);
+
+                            float hsbVals[] = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+
+                            Color highlight = Color.getHSBColor(hsbVals[0], hsbVals[1], 1);
+
+                            img.setRGB(i, j, RGBtoHEX(highlight));
+                        } else {
+                            img.setRGB(i, j, 0xFFFFFF);
+                        }
+                    }
+                }
+
+                try {
+                    ImageIO.write(img, "png", new File("wheel.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ImageIcon newIMGIcon = new ImageIcon(img);
+                imageLabel.setIcon(newIMGIcon);
+            }
+
+
+            //    public static int RGBtoHEX(Color color) {
+//        String hex = Integer.toHexString(color.getRGB() & 0xffffff);
+//        if (hex.length() < 6) {
+//            if (hex.length() == 5)
+//                hex = "0" + hex;
+//            if (hex.length() == 4)
+//                hex = "00" + hex;
+//            if (hex.length() == 3)
+//                hex = "000" + hex;
+//        }
+//        hex = "#" + hex;
+//        return Integer.decode(hex);
+//    }
+
+            int[] alteration ( int red, int green, int blue){
+//        int [] colour = {0,0,0};
+//        int adjustedColour = 0;
+//        Double threshold = alterationS.getValue()*2.55;
+//        switch ((String)alterationC.getSelectedItem()){
+//            case "Red":
+//                adjustedColour = red - ((int)(((green + blue) * 0.5)));
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = red;
+//                colour[1] = red;
+//                colour[2] = red;
+//                break;
+//            case "Yellow":
+//                adjustedColour = ((int)((green + red)*0.5)) - (blue);
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = (int)((green + red)*0.5);
+//                colour[1] = (int)((green + red)*0.5);
+//                colour[2] = (int)((green + red)*0.5);
+//                break;
+//            case "Green":
+//                adjustedColour = green - ((int)(((red + blue) * 0.5)));
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = green;
+//                colour[1] = green;
+//                colour[2] = green;
+//                break;
+//            case "Orange":
+//                adjustedColour = (int)((((green*0.647) + red)*0.5) - (((green*0.353) + blue)*0.5));
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = (int)(((green*0.647) + red)*0.5);
+//                colour[1] = (int)(((green*0.647) + red)*0.5);
+//                colour[2] = (int)(((green*0.647) + red)*0.5);
+//                break;
+//            case "Blue":
+//                adjustedColour = blue - ((int)(((green + red) * 0.5)));
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = blue;
+//                colour[1] = blue;
+//                colour[2] = blue;
+//                break;
+//            case "Purple":
+//                adjustedColour = (int)((((green*0.125) + (red*0.627) + (blue*0.941))*0.333333333) - (((green*0.875) + (red*0.373) + (blue*0.059))*0.333333333));
+//                if (adjustedColour < 0 || adjustedColour<threshold)
+//                    adjustedColour = 0;
+//                colour[0] = (int)((green*0.125) + (red*0.627) + (blue*0.941));
+//                colour[1] = (int)((green*0.125) + (red*0.627) + (blue*0.941));
+//                colour[2] = (int)((green*0.125) + (red*0.627) + (blue*0.941));
+//                break;
+//            default:
+//                colour[0] = red;
+//                colour[1] = green;
+//                colour[2] = blue;
+//                return colour;
+//        }
+
+                public void swapColour ( int button) throws IOException {
+                    BufferedImage img = ImageIO.read(currentImage);
+                    for (int y = 0; y < img.getHeight(); y++) {
+                        for (int x = 0; x < img.getWidth(); x++) {
+                            //Retrieving contents of a pixel
+                            int pixel = img.getRGB(x, y);
+                            //Creating a Color object from pixel value
+                            Color color = new Color(pixel, true);
+                            //Retrieving the R G B values
+                            int OGred = color.getRed();
+                            int OGgreen = color.getGreen();
+                            int OGblue = color.getBlue();
+
+                            Color newColor = new Color(0, 0, 0);
+
+                            if (button == 0) {
+                                newColor = new Color(OGred, OGgreen, OGblue);
+                            } else if (button == 1) {
+                                newColor = new Color(OGblue, OGred, OGgreen);
+                            } else {
+                                newColor = new Color(OGgreen, OGblue, OGred);
+                            }
+
+                            int z = newColor.getRGB();
+                            img.setRGB(x, y, z);
+                        }
+                    }
+                    ImageIcon newIMGIcon = new ImageIcon(img);
+                    Image image = newIMGIcon.getImage();
+                    Image newimg = image.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+                    newIMGIcon = new ImageIcon(newimg);
+                    imageL.setIcon(newIMGIcon);
+                }
+
+                //-----------------------------------------------------Mix-------------------------------------
+
+                public  class Difference{
+                    String colourOneHex;
+                    String colourTwoHex;
+                    String colourOneName;
+                    String colourTwoName;
+                    int difference;
+                }
+
+                public void randomiseColour(){
+
+                    Random rand = new Random();
+                    int n = rand.nextInt(list.size()-1);
+                    String colour1 = list.get(n).colourOneHex;
+                    String colour2 = list.get(n).colourTwoHex;
+                    colourDisplay(colour1,mixCol3);
+                    colourDisplay(colour2,mixCol4);
+                }
+
+                public int[] hexToRGB(String colour){
+                    char x = colour.charAt(0);
+                    char y = colour.charAt(1);
+                    String RGBred = String.valueOf(x) + String.valueOf(y);
+                    x = colour.charAt(2);
+                    y = colour.charAt(3);
+                    String RGBgreen = String.valueOf(x) + String.valueOf(y);
+                    x = colour.charAt(4);
+                    y = colour.charAt(5);
+                    String RGBblue = String.valueOf(x) + String.valueOf(y);
+                    int red = Integer.valueOf((RGBred), 16);
+                    int green = Integer.valueOf((RGBgreen), 16);
+                    int blue = Integer.valueOf((RGBblue), 16);
+                    int[] newColour = {red,green,blue};
+                    return newColour;
+                }
+
+                public void colourDisplay(String colour,JLabel display){
+                    int [] colourArray = hexToRGB(colour);
+
+                    Color newColor = new Color(colourArray[0], colourArray[1], colourArray[2]);
+                    int intColour = newColor.getRGB();
+
+                    BufferedImage img = new BufferedImage(200,200, BufferedImage.TYPE_INT_RGB);
+                    for (int i = 0; i < img.getWidth(); i++) {
+                        for (int j = 0; j < img.getHeight(); j++) {
+                            img.setRGB(i, j, intColour);
+                        }
+                    }
+                    ImageIcon newIMGIcon = new ImageIcon(img);
+                    display.setIcon(newIMGIcon);
+                }
+
+                public Boolean isColour(String colour){
+                    for (int i = 0; i < names.length; i++) {
+                        if (colour.equals(names[i][0]))
+                            return true;
+                    }
+                    return false;
+                }
+
+                public void fillContrastList (String colour, int percentDifference){
+
+                    String colourName = "";
+
+                    for (int i = 0; i < names.length; i++) {
+
+                        double difference = findContrast(colour,names[i][0]);
+
+                        if (difference == 0)
+                            colourName = names[i][1];
+                        int percent = (int)(difference);
+
+                        if(percent == percentDifference){
+                            Difference differenceObject = new Difference();
+                            differenceObject.colourOneName = colourName;
+                            differenceObject.colourTwoName = names[i][1];
+                            differenceObject.colourOneHex = names[i][0];
+                            differenceObject.colourTwoHex = colour;
+                            differenceObject.difference = percent;
+
+                            list.add(differenceObject);
+                        }
+
+                        //System.out.println(names[i][1] + names[i][0] + " " + percent + " " + names[j][1] + names[j][0]);
+                    }
+                    System.out.println("Hello");
+                }
+
+                public  Double findContrast(String colour1, String colour2){
+
+                    int [] colour1Array = hexToRGB(colour1);
+                    int rj = colour1Array[0];
+                    int gj = colour1Array[1];
+                    int bj = colour1Array[2];
+
+                    int[] colour2Array = hexToRGB(colour2);
+                    int ri = colour2Array[0];
+                    int gi = colour2Array[1];
+                    int bi = colour2Array[2];
+
+                    int rdiff = (int)Math.sqrt((ri - rj)*(ri-rj));
+                    int gdiff = (int)Math.sqrt((gi - gj)*(gi-gj));
+                    int bdiff = (int)Math.sqrt((bi - bj)*(bi-bj));
+
+                    double difference = (double) (rdiff+gdiff+bdiff);
+                    double smallPercent = (difference/765);
+                    double largepercent = (int)(smallPercent*100);
+                    return largepercent;
+                }
+
+            }
+        }
+
+
+        //-----------------------Sobel--------------------------------------------------------------
+
+        public int greyScale(int rgb){
+            int r =  (rgb >>16) & 0xff;
+            int g =  (rgb >>16) & 0xff;
+            int b =  (rgb >>16) & 0xff;
+            int average = (int)((r+g+b)/3);
+            return average;
+
+        }
+
+        public void applySobel() throws IOException {
+            BufferedImage img = ImageIO.read(currentImage);
+
+            int x = img.getWidth();
+            int y = img.getHeight();
+            int max = -1;
+            int[][] transformedImage = new int[x][y];
+
+            for (int i = 1; i < x-1; i++) {
+                for (int j = 1; j < y-1; j++) {
+                    //Retrieving contents of a pixel
+//                int pixel00 = greyScale(img.getRGB(x-1,y-1))*-1;
+//                int pixel01 = greyScale(img.getRGB(x-1,y))*0;
+//                int pixel02 = greyScale(img.getRGB(x-1,y+1))*1;
+//                int pixel10 = greyScale(img.getRGB(x,y-1))*-2;
+//                int pixel11 = greyScale(img.getRGB(x,y))*0;
+//                int pixel12 = greyScale(img.getRGB(x,y+1))*2;
+//                int pixel20 = greyScale(img.getRGB(x+1 ,y-1))*-1;
+//                int pixel21 = greyScale(img.getRGB(x+1,y))*0;
+//                int pixel22 = greyScale(img.getRGB(x+1,y+1))*1;
+
+                    int pixel00 = greyScale(img.getRGB(i-1,j-1));
+                    int pixel01 = greyScale(img.getRGB(i-1,j));
+                    int pixel02 = greyScale(img.getRGB(i-1,j+1));
+                    int pixel10 = greyScale(img.getRGB(i,j-1));
+                    int pixel11 = greyScale(img.getRGB(i,j));
+                    int pixel12 = greyScale(img.getRGB(i,j+1));
+                    int pixel20 = greyScale(img.getRGB(i+1 ,j-1));
+                    int pixel21 = greyScale(img.getRGB(i+1,j));
+                    int pixel22 = greyScale(img.getRGB(i+1,j+1));
+
+                    int xVal = (-1 * pixel00) + (0 * pixel01) + (1 * pixel02)
+                            + (-2 * pixel10) + (0 * pixel11) + (2 * pixel12)
+                            + (-1 * pixel20) + (0 * pixel21)+ (1 * pixel22);
+
+                    int yVal = (-1 * pixel00) + (-2 * pixel01) + (-1 * pixel02)
+                            + (0 * pixel10) + (0 * pixel11) + (0 * pixel12)
+                            + (1 * pixel20) + (2 * pixel21)+ (1 *pixel22);
+
+                    double total = Math.sqrt((yVal * yVal) + (xVal * xVal));
+//                double total = Math.sqrt((pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22)*(pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22));
+                    int gradient = (int)(total);
+
+                    if (max < gradient)
+                        max = gradient;
+
+                    transformedImage[i][j] = gradient;
+
+
+                }
+            }
+
+            double scale = 255.0 / max;
+
+            for (int i = 0; i < x-1; i++) {
+                for (int j = 0; j < y-1; j++) {
+                    int colour = transformedImage[i][j];
+                    colour = (int)(colour * scale);
+                    Color newColor = new Color(colour, colour, colour);
+                    int z = newColor.getRGB();
+                    img.setRGB(i, j, z);
+                }
+            }
+
+            ImageIcon newIMGIcon = new ImageIcon(img);
+            Image image = newIMGIcon.getImage();
+            Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+            newIMGIcon = new ImageIcon(newimg);
+            imageLabel.setIcon(newIMGIcon);
+        }
+
+        public int redScale(int rgb){
+            int r =  (rgb >>16) & 0xff;
+            int average = (int)((r));
+            return average;
+        }
+
+
+        public void applySobel2() throws IOException {
+            BufferedImage img = ImageIO.read(currentImage);
+
+            int x = img.getWidth();
+            int y = img.getHeight();
+            Boolean[][] transformedImage = new Boolean[x][y];
+            for (int i = 0; i < x; i++) {
+                for (int j = 0; j < y; j++) {
+                    transformedImage[i][j] = false;
+                }
+            }
+            //Arrays.fill(transformedImage,false);
+
+            for (int i = 1; i < x-1; i++) {
+                for (int j = 1; j < y-1; j++) {
+
+                    int gradient = 0;
+
+                    if(purpleBlue1.isConfused(i,j,img)||turquoise1.isConfused(i,j,img)||greyish.isConfused(i,j,img)) {
+                        int pixel00 = redScale(img.getRGB(i-1,j-1));
+                        int pixel01 = redScale(img.getRGB(i-1,j));
+                        int pixel02 = redScale(img.getRGB(i-1,j+1));
+                        int pixel10 = redScale(img.getRGB(i,j-1));
+                        int pixel11 = redScale(img.getRGB(i,j));
+                        int pixel12 = redScale(img.getRGB(i,j+1));
+                        int pixel20 = redScale(img.getRGB(i+1 ,j-1));
+                        int pixel21 = redScale(img.getRGB(i+1,j));
+                        int pixel22 = redScale(img.getRGB(i+1,j+1));
+
+                        int xVal = (-1 * pixel00) + (0 * pixel01) + (1 * pixel02)
+                                + (-2 * pixel10) + (0 * pixel11) + (2 * pixel12)
+                                + (-1 * pixel20) + (0 * pixel21)+ (1 * pixel22);
+
+                        int yVal = (-1 * pixel00) + (-2 * pixel01) + (-1 * pixel02)
+                                + (0 * pixel10) + (0 * pixel11) + (0 * pixel12)
+                                + (1 * pixel20) + (2 * pixel21)+ (1 *pixel22);
+
+                        double total = Math.sqrt((yVal * yVal) + (xVal * xVal));
+//                double total = Math.sqrt((pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22)*(pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22));
+                        gradient = (int)(total);
+                    }
+                    if(gradient > 50)
+                        transformedImage[i][j] = true;
+                }
+            }
+
+            for (int i = 0; i < x-1; i++) {
+                for (int j = 0; j < y-1; j++) {
+
+                    int pixel = img.getRGB(i, j);
+                    Color color = new Color(pixel, true);
+                    int OGred = color.getRed();
+                    int OGgreen = color.getGreen();
+                    int OGblue = color.getBlue();
+
+                    Color newColor = new Color(OGred,OGgreen,OGblue);
+
+                    if (transformedImage[i][j])
+                        newColor = new Color(255,255,255);
+
+                    int z = newColor.getRGB();
+                    img.setRGB(i, j, z);
+                }
+            }
+
+            ImageIcon newIMGIcon = new ImageIcon(img);
+            Image image = newIMGIcon.getImage();
+            Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+            newIMGIcon = new ImageIcon(newimg);
+            imageLabel.setIcon(newIMGIcon);
+        }
+
+//    public class ConfusionLine{
+//        public int g;
+//        public int b;
+//        public int variance;
+//
+//        public ConfusionLine(int g, int b, int variance){
+//            this.g = g;
+//            this.b = b;
+//            this.variance = variance;
+//        }
+//
+//        public Boolean isConfused(int i, int j, BufferedImage img){
+//            Boolean isConfused = true;
+//            for (int k = i-1; k < i+1; k++) {
+//                for (int l = j-1; l < j+1; l++) {
+//                    int pixel = img.getRGB(k, l);
+//                    Color color = new Color(pixel, true);
+//                    int red = color.getRed();
+//                    int green = color.getGreen();
+//                    int blue = color.getBlue();
+////
+//                    if(!((green >= g-variance*2) && (green <= g+variance*2) && (blue >= b-variance) && (blue <= b+variance)))
+//                        isConfused = false;
+//                }
+//            }
+//            return isConfused;
+//        }
+//    }
+        //rgb = matrixInv
+        ConfusionLine purpleBlue1 = new ConfusionLine(1.0,0.0,0.0,0,143,193);
+        ConfusionLine turquoise1 = new ConfusionLine(1.0,0.0,0.0,0, 193,200);
+        ConfusionLine greyish = new ConfusionLine(1.0,0.0,0.0,0,127,127);
+
+//    ConfusionLine darkBrownDarkred = new ConfusionLine(1.0,0.5,0.0,0,0,0,255);
+//    ConfusionLine purpleBlue1 = new ConfusionLine(1.0,0.0,0.0,0,143,193,255);
+//
+        public class ConfusionLine{
+            public double x;
+            public double y;
+            public double z;
+
+            public int r;
+            public int g;
+            public int b;
+
+            public int variance;
+            public int start;
+            public int end;
+
+            public ConfusionLine(double x, double y, double z, int r, int g, int b){
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.r = r;
+                this.g = g;
+                this.b = b;
+                this.variance = 10;
+                this.start = 0;
+                this.end = 255;
+            }
+
+            public ConfusionLine(double x, double y, double z, int r, int g, int b, int variance, int start, int end){
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.r = r;
+                this.g = g;
+                this.b = b;
+                this.variance = variance;
+                this.start = start;
+                this.end = end;
+            }
+
+            public Boolean check(int red, int green, int blue){
+                Boolean contained = false;
+                for (int i = 0; i < 255; i++) {
+                    int[] boundaries = {(r+((int)(x*i))-variance),(r+((int)(x*i))+variance),
+                            (g+((int)(y*i))-variance),(g+((int)(y*i))+variance),
+                            (b+((int)(z*i))-variance),(b+((int)(z*i))+variance)};
+                    if ((red >= boundaries[0])&&(red <= boundaries[1])
+                            &&(green >= boundaries[2])&&(green <= boundaries[3])
+                            &&(blue >= boundaries[4])&&(blue <= boundaries[5])){
+                        contained = true;
+                        break;
+                    }
+                }
+                return contained;
+            }
+
+            public Boolean isConfused(int i, int j, BufferedImage img){
+                Boolean isConfused = true;
+                for (int k = i-1; k < i+1; k++) {
+                    for (int l = j-1; l < j+1; l++) {
+                        int pixel = img.getRGB(k, l);
+                        Color color = new Color(pixel, true);
+                        int red = color.getRed();
+                        int green = color.getGreen();
+                        int blue = color.getBlue();
+
+                        if(!check(red,green,blue)){
+                            isConfused = false;
+                            break;
+                        }
+                    }
+                }
+                return isConfused;
+            }
+
+        }
+
+//    public void drawVector(){
+//        BufferedImage img;
+//        int r;
+//        int g;
+//        int b;
+//        int x;
+//        int y;
+//        int z;
+//        for (int i = 0; i < 255; i++) {
+//
+//            Color newColor = new Color(r+(int)(i*x),g + (int)(i*y),b + (int)(i*z));
+//
+//            int a = newColor.getRGB();
+//            img.setRGB(0, i, z);
+//        }
+//    }
+//
+//    //ConfusionLine darkBrownDarkred = new ConfusionLine(1.0,0.5,0.0,0,0,0,255);
+//    ConfusionLine purpleBlue1 = new ConfusionLine(1.0,0.0,0.0,0,143,193,255);
+//    public void applySobel2() throws IOException {
+//        BufferedImage img = ImageIO.read(currentImage);
+//
+//        int x = img.getWidth();
+//        int y = img.getHeight();
+//        int max = -1;
+//        int[][] transformedImage = new int[x][y];
+//
+//        for (int i = 1; i < x-1; i++) {
+//            for (int j = 1; j < y-1; j++) {
+//                int gradient = 0;
+//                boolean if1 = true;
+//                boolean if2 = true;
+//                for (int k = i-1; k < i+1; k++) {
+//                    for (int l = j-1; l < j+1; l++) {
+//                        int pixel = img.getRGB(k, l);
+//                        Color color = new Color(pixel, true);
+//                        int red = color.getRed();
+//                        int green = color.getGreen();
+//                        int blue = color.getBlue();
+////                        if (!challenge(red,green,blue,boundaryOne) && !challenge(red,green,blue,boundaryTwo))
+////                            ifAll = false;
+//                        if(!darkBrownDarkred.check(red,green,blue))
+//                            if1 = false;
+//                    }
+//                }
+//                for (int k = i-1; k < i+1; k++) {
+//                    for (int l = j-1; l < j+1; l++) {
+//                        int pixel = img.getRGB(k, l);
+//                        Color color = new Color(pixel, true);
+//                        int red = color.getRed();
+//                        int green = color.getGreen();
+//                        int blue = color.getBlue();
+////                        if (!challenge(red,green,blue,boundaryOne) && !challenge(red,green,blue,boundaryTwo))
+////                            ifAll = false;
+//                        if(!purpleBlue1.check(red,green,blue))
+//                            if2 = false;
+//                    }
+//                }
+//                if(!if1 || if2){
+//                    gradient = 0;
+//                } else{
+//                    int pixel00 = redScale(img.getRGB(i-1,j-1));
+//                    int pixel01 = redScale(img.getRGB(i-1,j));
+//                    int pixel02 = redScale(img.getRGB(i-1,j+1));
+//                    int pixel10 = redScale(img.getRGB(i,j-1));
+//                    int pixel11 = redScale(img.getRGB(i,j));
+//                    int pixel12 = redScale(img.getRGB(i,j+1));
+//                    int pixel20 = redScale(img.getRGB(i+1 ,j-1));
+//                    int pixel21 = redScale(img.getRGB(i+1,j));
+//                    int pixel22 = redScale(img.getRGB(i+1,j+1));
+//
+//                    int xVal = (-1 * pixel00) + (0 * pixel01) + (1 * pixel02)
+//                            + (-2 * pixel10) + (0 * pixel11) + (2 * pixel12)
+//                            + (-1 * pixel20) + (0 * pixel21)+ (1 * pixel22);
+//
+//                    int yVal = (-1 * pixel00) + (-2 * pixel01) + (-1 * pixel02)
+//                            + (0 * pixel10) + (0 * pixel11) + (0 * pixel12)
+//                            + (1 * pixel20) + (2 * pixel21)+ (1 *pixel22);
+//
+//                    double total = Math.sqrt((yVal * yVal) + (xVal * xVal));
+////                double total = Math.sqrt((pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22)*(pixel00+pixel01+pixel02+pixel10+pixel11+pixel12+pixel20+pixel21+pixel22));
+//                    gradient = (int)(total);
+//                }
+//
+//                if (max < gradient)
+//                    max = gradient;
+//
+//                transformedImage[i][j] = gradient;
+//
+//
+//            }
+//        }
+//
+//        double scale = 255.0 / max;
+//
+//        for (int i = 0; i < x-1; i++) {
+//            for (int j = 0; j < y-1; j++) {
+//                int colour = transformedImage[i][j];
+//                colour = (int)(colour * scale);
+//                Color newColor = new Color(colour, colour, colour);
+//                int z = newColor.getRGB();
+//                img.setRGB(i, j, z);
+//            }
+//        }
+//
+//        ImageIcon newIMGIcon = new ImageIcon(img);
+////        Image image = newIMGIcon.getImage();
+////        Image newimg = image.getScaledInstance(300,300, Image.SCALE_SMOOTH);
+////        newIMGIcon = new ImageIcon(newimg);
+//        imageLabel.setIcon(newIMGIcon);
+//    }
